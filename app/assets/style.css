@@ -1,0 +1,23 @@
+.modebar {
+    display: none !important
+}
+
+.body {
+    margin-bottom: 50px
+}
+
+.hidden {
+    display: none
+}
+
+#author {
+    padding-bottom: 25px
+}
+
+#generate {
+    margin-bottom: 25px
+}
+
+#download-button {
+    margin-bottom: 20px;
+}
