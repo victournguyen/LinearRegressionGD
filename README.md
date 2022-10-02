@@ -3,7 +3,7 @@ This program is a web application that displays an interactive graph, an impleme
 
 Users can change the maximum number of iterations, or epochs, that the algorithm goes through, its learning rate, and even the points that it attempts to find a relationship for.
 
-This project is optimized for uploading to Amazon Web Services, specifically for an Elastic Beanstalk Web Server application and environment. [here](https://bit.ly/linreggd){target="_blank"} (the environment may or may not be activated).
+This project is optimized for uploading to Amazon Web Services, specifically for an Elastic Beanstalk Web Server application and environment. It is accessible [here](https://bit.ly/linreggd) (the environment may or may not be activated).
 
 As for the code itself, I have used the 80-character standard to improve code readability. Each function has a description of what it does, and comments describe certain sections of code. The functions that are used during the calculation process are placed at near the top of the program while those used for the callback inputs of the interactive webpage are at the bottom of the code. The words 'epoch' and 'iteration' are used interchangeably in variable names and comments.
 
