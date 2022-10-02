@@ -11,17 +11,20 @@ The cost function used is mean squared error. We try to minimize the cost by adv
 
 If the learning rate is too high, convergence will not happen.
 
-![Max Epochs: 100 | Learning Rate: 0.2](app/example_gifs/overshoot_diverge-max100-lr0.2.gif)
-*test*
+![Max Epochs: 100 | Learning Rate: 0.2](app/example_gifs/overshoot_diverge-max100-lr0.2.gif)<br>
+*Max Epochs: 100, Learning Rate: 0.2*
 
 The learning rate can still be too high even if the gradient descent converges. In this case, the algorithm will repeatedly overshoot the minimum until it gets close to it.
 
-![Max Epochs: 100 | Learning Rate: 0.1](app/example_gifs/overshoot_converge-max100-lr0.1.gif)
+![Max Epochs: 100 | Learning Rate: 0.1](app/example_gifs/overshoot_converge-max100-lr0.1.gif)<br>
+*Max Epochs: 100, Learning Rate: 0.1*
 
 On the other hand, a learning rate that is too low will cause convergence to happen in an unreasonably long amount of time.
 
-![Max Epochs: 100 | Learning Rate: 0.01](app/example_gifs/slow-converge-max100-lr0.01.gif)
+![Max Epochs: 100 | Learning Rate: 0.01](app/example_gifs/slow-converge-max100-lr0.01.gif)<br>
+*Max Epochs: 100, Learning Rate: 0.01*
 
 Therefore, we want to find a learning rate that causes the gradient descent to converge quickly and efficiently.
 
-![Max Epochs: 100 | Learning Rate: 0.08](app/example_gifs/better-converge-max100-lr0.08.gif)
+![Max Epochs: 100 | Learning Rate: 0.08](app/example_gifs/better-converge-max100-lr0.08.gif)<br>
+*Max Epochs: 100, Learning Rate: 0.08*
