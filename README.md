@@ -12,6 +12,7 @@ The cost function used is mean squared error. We try to minimize the cost by adv
 If the learning rate is too high, convergence will not happen.
 
 ![Max Epochs: 100 | Learning Rate: 0.2](app/example_gifs/overshoot_diverge-max100-lr0.2.gif)
+*test*
 
 The learning rate can still be too high even if the gradient descent converges. In this case, the algorithm will repeatedly overshoot the minimum until it gets close to it.
 
