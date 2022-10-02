@@ -7,7 +7,7 @@ This project is optimized for uploading to Amazon Web Services, specifically for
 
 As for the code itself, I have used the 80-character standard to improve code readability. Each function has a description of what it does, and comments describe certain sections of code. The functions that are used during the calculation process are placed at near the top of the program while those used for the callback inputs of the interactive webpage are at the bottom of the code. The words 'epoch' and 'iteration' are used interchangeably in variable names and comments.
 
-The cost function used is mean squared error. We try to minimize the cost by advancing the constant and coefficient values in the best-fit line (LSRL) in the right direction. This is what gradient descent does: it steps in the direction of the global minimum each iteration until it converges.
+The cost function used is mean squared error, which calculates the mean of the squared difference between the actual value and the predicted value. We try to minimize the cost by advancing the constant and coefficient values in the best-fit line (LSRL) in the right direction. This is what gradient descent does: it steps in the direction of the global minimum each iteration until it converges.
 
 If the learning rate is too high, convergence will not happen.
 
