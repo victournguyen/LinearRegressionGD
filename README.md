@@ -3,7 +3,7 @@ This program is a web application that displays an interactive graph, an impleme
 
 Users can change the maximum number of iterations, or epochs, that the algorithm goes through, its learning rate, and even the points that it attempts to find a relationship for.
 
-The cost function used is mean squared error. We try to minimize the cost by advancing the constant and coefficient values in the best-fit line (LSRL) in the right direction. This is what gradient descent does: it steps in the direction of the global minimum each iteration until it converges. If the learning rate is too high, convergence will not happen. The learning rate can still be too high even if the gradient descent converges. In this case, the algorithm will repeatedly overshoot the minimum until it gets close to it.
+The cost function used is mean squared error. We try to minimize the cost by advancing the constant and coefficient values in the best-fit line (LSRL) in the right direction. This is what gradient descent does: it steps in the direction of the global minimum each iteration until it converges. If the learning rate is too high, convergence will not happen. The learning rate can still be too high even if the gradient descent converges. In this case, the algorithm will repeatedly overshoot the minimum until it gets close to it. On the other hand, a learning rate that is too low will cause convergence to happen in an unreasonably long amount of time.
 
 This project is optimized for uploading to Amazon Web Services, specifically for an Elastic Beanstalk Web Server application and environment.
 
