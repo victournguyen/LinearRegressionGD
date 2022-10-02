@@ -220,6 +220,7 @@ def make_gif(figs, filepath, width, height):
 #-------------------------------Global Variables-------------------------------#
 # Create the Dash app
 app = Dash(__name__)
+app.title = 'Linear Regression with Gradient Descent'
 # Used for deployment
 application = app.server
 
