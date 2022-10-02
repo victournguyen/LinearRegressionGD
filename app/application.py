@@ -199,8 +199,6 @@ def make_gif(figs, filepath, width, height):
     # Save each of the figures individually
     i = 0
     for f in figs:
-        # Convert back from dictionary form (due to how dcc.Store works)
-        f = go.Figure(data=f)
         f.write_image(
             'temp_{index}.png'.format(index=i),
             width=width,
@@ -225,20 +223,26 @@ app = Dash(__name__)
 # Used for deployment
 application = app.server
 
-# Create the default variables stored in the webpage
-default = {
-    'df': pd.read_csv('default.csv').to_dict('records'),
-    'max_epochs': 100,
-    'learning_rate': 0.1,
-}
-# Default graphs
-default['beta0'], default['beta1'], default['figures'] = iterate_linreg(
-    pd.DataFrame(default['df']),
+# Default settings
+df_default = pd.read_csv('default.csv')
+max_epochs_default = 100
+learning_rate_default = 0.1
+beta0_default, beta1_default, figures_default = iterate_linreg(
+    df_default,
     1,
     1,
-    default['max_epochs'],
-    default['learning_rate']
+    max_epochs_default,
+    learning_rate_default
 )
+
+# Main global variables (reset to defaults when page refreshes)
+df = df_default.copy()
+max_epochs = max_epochs_default
+learning_rate = learning_rate_default
+beta0 = beta0_default
+beta1 = beta1_default
+figures = figures_default.copy()
+gif_df_save = gif_max_epochs_save = gif_lr_save = None
 
 # For the download button
 gif_filepath = 'figure.gif'
@@ -257,14 +261,13 @@ cols = [{
     'validation': {
         'default': 0
     }
-} for i in pd.DataFrame(default['df']).columns]
+} for i in df_default.columns]
 
 #-----------------------------Dash/HTML Integration----------------------------#
 app.layout = html.Div(className='body', children=[
     # Page header
     html.Center(children=[
-        html.H3(children='An Implementation of Linear Regression Using Gradient'
-            + ' Descent'),
+        html.H3(children='Linear Regression with Gradient Descent'),
         html.Div(id='author', children=[
             html.H5(children='Victor Nguyen')
         ])
@@ -276,14 +279,14 @@ app.layout = html.Div(className='body', children=[
             dcc.Slider(
                 id='epoch-slider',
                 min=0,
-                max=default['max_epochs'],
+                max=max_epochs_default,
                 step=1,
                 value=0,
                 # 10-11 labels on the slider unless max_epochs < 10
                 marks={str(z): str(z) for z in range(
                     0,
-                    default['max_epochs']+ 1,
-                    max(default['max_epochs'] // 10, 1)
+                    max_epochs_default + 1,
+                    max(max_epochs_default // 10, 1)
                 )}
             )
         ])
@@ -296,7 +299,7 @@ app.layout = html.Div(className='body', children=[
             dcc.Input(
                 id='max-epochs-input',
                 type='text',
-                value=100
+                value=max_epochs_default
             ),
             html.Label(htmlFor='max-epochs-input', children='Max Epochs'),
         ]),
@@ -306,7 +309,7 @@ app.layout = html.Div(className='body', children=[
             dcc.Input(
                 id='learning-rate-input',
                 type='text',
-                value=0.1
+                value=learning_rate_default
             ),
             html.Label(htmlFor='learning-rate-input', children='Learning Rate')
         ])
@@ -314,9 +317,9 @@ app.layout = html.Div(className='body', children=[
     html.Center(children=[
         # Button row
         html.Div(id='generate', className='row', children=[
-            # Submit button to generate a new list of graphs with input for max
-            # epochs, learning rate, and data points
-            #     - Prevents unwanted calculations for intermediate changes
+            # - Submit button to generate a new list of graphs with input for
+            #   max epochs, learning rate, and data points
+            # - Prevents unwanted calculations for intermediate changes
             html.Div(className='col s2 offset-s4', children=[
                 html.Button(
                     id='generate-button',
@@ -340,7 +343,7 @@ app.layout = html.Div(className='body', children=[
             html.Div(id='table-holder', className='col s2 offset-s5', children=[
                 DataTable(
                     id='points',
-                    data=default['df'],
+                    data=df.to_dict('records'),
                     columns=cols,
                     editable=True,
                     row_deletable=True,
@@ -360,19 +363,47 @@ app.layout = html.Div(className='body', children=[
             children='Add Row'
         )
     ]),
-    # Storage for webpage variables (Note: the program will not run correctly if
-    # storage_type is something other than 'memory')
-    dcc.Store(id='store', storage_type='memory', data=default),
-    dcc.Store(id='store-gif', storage_type='memory', data={})
+    # Throwaway input and output for the reset callback
+    html.Div(id='hidden', className='hidden')
 ])
 
 #------------------------------Callback Functions------------------------------#
+# All global variables are explicitly stated after each function description.
+@app.callback(
+    Output('hidden', 'children'),
+    Input('hidden', 'children')
+)
+def reset(abc):
+    """
+    This function resets the global variables to their default settings, which
+    are defined in the 'Global Variables' section. The callback runs after every
+    page refresh since it does not use any user input.
+    Arguments:
+        - abc: string
+            -- Not used, throwaway input
+    """
+    global df_default, learning_rate_default, max_epochs_default, beta0_default
+    global beta1_default, figures_default
+    global df, learning_rate, max_epochs, beta0, beta1, figures
+    global gif_df_save, gif_lr_save, gif_max_epochs_save
+
+    # Reset to defaults
+    df = df_default
+    learning_rate = learning_rate_default
+    max_epochs = max_epochs_default
+    beta0 = beta0_default
+    beta1 = beta1_default
+    figures = figures_default
+    gif_df_save = gif_lr_save = gif_max_epochs_save = None
+
+    # Throwaway output
+    return ''
+
 @app.callback(
     Output('scatter-plot', 'figure'),
     Input('epoch-slider', 'value'),
-    State('store', 'data'),
 )
-def update_epoch(epoch, vars):
+def update_epoch(epoch):
     """
     This function is responsible for setting the display of the graph element.
     It takes input from the epoch slider, and since the figures are cached, all
@@ -380,47 +411,26 @@ def update_epoch(epoch, vars):
     Arguments:
         - epoch: int
             -- Epoch selected by the user for which to display a graph
-        - vars: dict
-            -- Dictionary containing graph and calculation variables stored in'
-               the webpage
     """
-    figures = vars['figures']
+    global figures
 
-    # Convert back from dictionary form (due to how dcc.Store works)
-    return go.Figure(data=figures[epoch])
+    return figures[epoch]
 
 @app.callback(
     Output('download-gif', 'data'),
-    Output('store-gif', 'data'),
     Input('download-button', 'n_clicks'),
-    State('store', 'data'),
-    State('store-gif', 'data'),
     prevent_initial_call=True
 )
-def download_gif(n_clicks, vars, vars2):
+def download_gif(n_clicks):
     """
     This function generates a GIF animation of the linear regression. It takes
     input from the download button and sends the file back to the user.
     Arguments:
         - n_clicks: int
             -- Not used, only the button click is considered
-        - vars: dict
-            -- Dictionary containing graph and calculation variables stored in
-               the webpage
-        - vars2: dict
-            -- Dictionary containing the state of the system regarding the most
-               recent download
     """
-    # Input handling for webpage variables, accounting for nonexisting keys
-    df = pd.DataFrame(vars['df'])
-    learning_rate = vars['learning_rate']
-    max_epochs = vars['max_epochs']
-    figures = vars['figures']
-    gif_df_save = vars2.get('gif_df_save', None)
-    if gif_df_save != None:
-        gif_df_save = pd.DataFrame(gif_df_save)
-    gif_lr_save = vars2.get('gif_lr_save', None)
-    gif_max_epochs_save = vars2.get('gif_max_epochs_save', None)
+    global df, gif_df_save, learning_rate, gif_lr_save, max_epochs
+    global gif_max_epochs_save, figures, gif_filepath
 
     # Since no cache is used (to reduce load times for other features), only
     # make a new GIF if the figures change, which is indicated by a change in
@@ -431,26 +441,24 @@ def download_gif(n_clicks, vars, vars2):
         make_gif(figures, gif_filepath, 960, 540)
 
     # Save the state of this function call to avoid redundant generation
-    vars2['gif_df_save'] = df.to_dict('records')
-    vars2['gif_lr_save'] = learning_rate
-    vars2['gif_max_epochs_save'] = max_epochs
+    gif_df_save = df
+    gif_lr_save = learning_rate
+    gif_max_epochs_save = max_epochs
 
-    return dcc.send_file(gif_filepath), vars2
+    return dcc.send_file(gif_filepath)
 
 @app.callback(
     Output('epoch-slider', 'max'),
     Output('epoch-slider', 'marks'),
-    Output('store', 'data'),
     Input('generate-button', 'n_clicks'),
     # State is used to prevent unwanted calculations for intermediate changes
-    State('store', 'data'),
     State('max-epochs-input', 'value'),
     State('learning-rate-input', 'value'),
     State('points', 'data'),
     State('points', 'columns'),
     prevent_initial_call=True
 )
-def generate(n_clicks, vars, new_max, new_lr, rows, columns):
+def generate(n_clicks, new_max, new_lr, rows, columns):
     """
     This function is the callback function for any user input that changes the
     state of the algorithm (max epochs, learning rate, or points in the graph).
@@ -461,9 +469,6 @@ def generate(n_clicks, vars, new_max, new_lr, rows, columns):
     Arguments:
         - n_clicks: int
             -- Not used, only the button click is considered
-        - vars: dict
-            -- Dictionary containing graph and calculation variables stored in
-               the webpage
         - new_max: int
             -- New maximum number of iterations
         - new_lr: float
@@ -475,13 +480,7 @@ def generate(n_clicks, vars, new_max, new_lr, rows, columns):
             -- Collection of dictionaries for each column that describe the
                display properties
     """
-    # Retrieve webpage variables
-    df = pd.DataFrame(vars['df'])
-    beta0 = vars['beta0']
-    beta1 = vars['beta1']
-    figures = vars['figures']
-    learning_rate = vars['learning_rate']
-    max_epochs = vars['max_epochs']
+    global df, beta0, beta1, figures, learning_rate, max_epochs
     
     # Input validation, no update if fails
     try:
@@ -526,16 +525,13 @@ def generate(n_clicks, vars, new_max, new_lr, rows, columns):
         )
 
     # Replace the old values
-    vars['max_epochs'] = new_max
-    vars['learning_rate'] = new_lr
-    vars['df'] = new_df.to_dict('records')
-    vars['beta0'] = beta0
-    vars['beta1'] = beta1
-    vars['figures'] = figures
+    max_epochs = new_max
+    learning_rate = new_lr
+    df = new_df
 
     # Update the slider and webpage variables
     return new_max, {str(z): str(z) for z in range(0, new_max + 1,
-        max(new_max // 10, 1))}, vars
+        max(new_max // 10, 1))}
 
 @app.callback(
     Output('points', 'data'),
