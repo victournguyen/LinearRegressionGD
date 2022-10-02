@@ -10,9 +10,7 @@ As for the code itself, I have used the 80-character standard to improve code re
 The cost function used is mean squared error. We try to minimize the cost by advancing the constant and coefficient values in the best-fit line (LSRL) in the right direction. This is what gradient descent does: it steps in the direction of the global minimum each iteration until it converges.
 
 If the learning rate is too high, convergence will not happen.
-
 ![Max Epochs: 100 | Learning Rate: 0.2](app/example_gifs/overshoot_diverge-max100-lr0.2.gif)
-
 The learning rate can still be too high even if the gradient descent converges. In this case, the algorithm will repeatedly overshoot the minimum until it gets close to it.
 
 On the other hand, a learning rate that is too low will cause convergence to happen in an unreasonably long amount of time.
